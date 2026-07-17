@@ -57,7 +57,7 @@ pub fn init(app_handle: &AppHandle) -> Connection {
         .expect("failed to resolve app data dir");
     std::fs::create_dir_all(&dir).expect("failed to create app data dir");
 
-    let db_path = dir.join("zicopy.db");
+    let db_path = dir.join("copybrain.db");
     let conn = Connection::open(db_path).expect("failed to open sqlite database");
     conn.execute_batch("PRAGMA foreign_keys = ON; PRAGMA journal_mode = WAL;")
         .expect("failed to set pragmas");

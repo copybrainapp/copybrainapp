@@ -17,7 +17,7 @@ pub fn spawn(app_handle: AppHandle, suppress: SuppressState) {
         let mut clipboard = match Clipboard::new() {
             Ok(c) => c,
             Err(err) => {
-                eprintln!("zicopy: failed to initialize clipboard watcher: {err}");
+                eprintln!("copybrain: failed to initialize clipboard watcher: {err}");
                 return;
             }
         };

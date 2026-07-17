@@ -63,9 +63,9 @@ export function Sidebar() {
     <aside className="flex h-full w-60 shrink-0 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground">
       <div className="flex items-center gap-2 px-4 py-4">
         <div className="flex size-6 items-center justify-center rounded-md bg-primary text-primary-foreground text-xs font-bold">
-          Z
+          C
         </div>
-        <span className="font-heading text-sm font-semibold">ZiCopy</span>
+        <span className="font-heading text-sm font-semibold">CopyBrain</span>
       </div>
 
       <div className="flex-1 overflow-y-auto px-2 pb-4">

@@ -1,73 +1,73 @@
-# ZiCopy
+# CopyBrain
 
 > Never lose a copied text again.
 
-ZiCopy adalah aplikasi clipboard timeline modern untuk Windows, macOS, dan Linux. Berbeda dari clipboard manager pada umumnya yang hanya menyimpan beberapa item terakhir, ZiCopy otomatis mengarsipkan seluruh riwayat clipboard ke dalam timeline yang bisa dicari kapan saja — kemarin, minggu lalu, bulan lalu, bahkan tahun lalu.
+CopyBrain is a modern clipboard timeline application for Windows, macOS, and Linux. Unlike typical clipboard managers that only keep the last few items, CopyBrain automatically archives your entire clipboard history into a searchable timeline — find anything you copied yesterday, last week, last month, or even years ago.
 
 ---
 
-## Fitur
+## Features
 
-- Riwayat clipboard tanpa batas, tersimpan lokal di SQLite
-- Timeline view (dikelompokkan per hari) dengan virtual scrolling
+- Unlimited clipboard history, stored locally in SQLite
+- Timeline view (grouped by day) with virtual scrolling
 - Instant search (full-text search via SQLite FTS5)
 - Favorites & Collections
-- Deteksi tipe konten otomatis: Text, URL, Email, Phone, File Path
-- Tray icon + global shortcut (`Cmd/Ctrl+Shift+V`) untuk show/hide window
-- Auto start saat login (opsional)
-- Single instance (tidak bisa buka dobel window)
-- 100% local-first, tidak ada data yang dikirim ke server manapun
+- Automatic content-type detection: Text, URL, Email, Phone, File Path
+- Tray icon + global shortcut (`Cmd/Ctrl+Shift+V`) to show/hide the window
+- Auto start on login (optional)
+- Single instance (no duplicate windows)
+- 100% local-first — no data is ever sent to any server
 
 ---
 
 ## Tech Stack
 
 ### Desktop shell
-- **Tauri v2** — bridge Rust ⟷ Webview native per platform
+- **Tauri v2** — Rust ⟷ native webview bridge per platform
 
 ### Frontend
 - **React 19** + **TypeScript**
 - **Vite 7** — dev server & bundler
-- **Tailwind CSS v4** — styling (CSS-first config, tanpa `tailwind.config.js`)
-- **shadcn/ui** (Base UI primitives) — komponen UI
-- **TanStack Query** — data fetching & caching ke Tauri commands
-- **TanStack Virtual** — virtualized list untuk timeline
-- **Zustand** — UI state (filter aktif, search query, dsb)
+- **Tailwind CSS v4** — styling (CSS-first config, no `tailwind.config.js`)
+- **shadcn/ui** (Base UI primitives) — UI components
+- **TanStack Query** — data fetching & caching against Tauri commands
+- **TanStack Virtual** — virtualized list for the timeline
+- **Zustand** — UI state (active filter, search query, etc.)
 - **date-fns**, **lucide-react**
 
-### Backend (Rust, di `src-tauri/`)
-- **rusqlite** (`bundled` feature) — SQLite dibundle langsung ke binary, sudah include **FTS5** untuk full-text search
-- **arboard** — baca/tulis clipboard sistem, dipoll di background thread
-- **tauri-plugin-global-shortcut** — shortcut global show/hide window
-- **tauri-plugin-autostart** — auto start di OS
-- **tauri-plugin-single-instance** — cegah multi instance
+### Backend (Rust, in `src-tauri/`)
+- **rusqlite** (`bundled` feature) — SQLite compiled directly into the binary, with **FTS5** built in for full-text search
+- **arboard** — reads/writes the system clipboard, polled from a background thread
+- **tauri-plugin-global-shortcut** — global show/hide window shortcut
+- **tauri-plugin-autostart** — OS-level auto start
+- **tauri-plugin-single-instance** — prevents duplicate app instances
 - **chrono**, **regex**, **uuid**, **once_cell**, **serde**
 
 ### Database
-- SQLite (file lokal, disimpan di app data dir masing-masing OS)
-- FTS5 virtual table + triggers untuk keep index tetap sinkron
-- SQLCipher (opsional, belum diaktifkan — lihat bagian Roadmap)
+- SQLite (local file, stored in the OS's app data directory)
+- FTS5 virtual table + triggers to keep the search index in sync
+- SQLCipher (optional, not yet enabled — see Roadmap)
 
 ---
 
-## Prasyarat (semua platform)
+## Prerequisites (all platforms)
 
-Wajib ada di semua OS sebelum development atau build:
+Required on every OS before development or building:
 
-| Tool | Versi minimal | Cek dengan |
+| Tool | Minimum version | Check with |
 |---|---|---|
-| [Node.js](https://nodejs.org) | 18+ (disarankan 20/22 LTS) | `node -v` |
+| [Node.js](https://nodejs.org) | 18+ (20/22 LTS recommended) | `node -v` |
 | [pnpm](https://pnpm.io) | 9+ | `pnpm -v` |
-| [Rust](https://rustup.rs) | stable terbaru | `rustc -V` & `cargo -V` |
-| [Tauri CLI](https://tauri.app) | terpasang otomatis via `pnpm install` (devDependency) | `pnpm tauri -V` |
+| [Rust](https://rustup.rs) | latest stable | `rustc -V` & `cargo -V` |
+| [Tauri CLI](https://tauri.app) | installed automatically via `pnpm install` (devDependency) | `pnpm tauri -V` |
 
-Install Rust (jika belum ada) lewat [rustup](https://rustup.rs):
+Install Rust (if you don't have it) via [rustup](https://rustup.rs):
 
 ```bash
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 ```
 
-### Dependency tambahan per platform
+### Additional per-platform dependencies
 
 **macOS**
 - Xcode Command Line Tools:
@@ -77,9 +77,9 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 
 **Windows**
 - [Microsoft C++ Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/) (workload "Desktop development with C++")
-- [WebView2 Runtime](https://developer.microsoft.com/microsoft-edge/webview2/) — biasanya sudah bawaan Windows 10/11, kalau belum ada tinggal download
+- [WebView2 Runtime](https://developer.microsoft.com/microsoft-edge/webview2/) — usually already bundled with Windows 10/11; download it if missing
 
-**Linux** (Debian/Ubuntu, sesuaikan untuk distro lain)
+**Linux** (Debian/Ubuntu, adjust for other distros)
 ```bash
 sudo apt update
 sudo apt install -y \
@@ -95,40 +95,40 @@ sudo apt install -y \
   libxdo-dev \
   libayatana-appindicator3-dev
 ```
-> Fedora/Arch pakai paket setara (`webkit2gtk4.1-devel`, dst). Lihat [dokumentasi resmi Tauri prerequisites](https://tauri.app/start/prerequisites/) untuk daftar lengkap per distro.
+> Fedora/Arch use equivalent packages (`webkit2gtk4.1-devel`, etc). See the [official Tauri prerequisites docs](https://tauri.app/start/prerequisites/) for the full per-distro list.
 
 ---
 
-## Menjalankan (development mode)
+## Running in development
 
 ```bash
-# 1. clone / masuk ke folder project
-cd ZiCopy
+# 1. enter the project folder
+cd CopyBrain
 
-# 2. install dependency frontend
+# 2. install frontend dependencies
 pnpm install
 
-# 3. jalankan app (hot reload frontend + auto rebuild Rust saat file berubah)
+# 3. run the app (frontend hot reload + auto rebuild Rust on change)
 pnpm tauri dev
 ```
 
-Perintah di atas otomatis:
-- Menjalankan Vite dev server di `http://localhost:1420`
-- Compile backend Rust (`src-tauri`)
-- Membuka window aplikasi native
+This automatically:
+- Starts the Vite dev server at `http://localhost:1420`
+- Compiles the Rust backend (`src-tauri`)
+- Opens the native app window
 
-Perintah dev lain yang berguna:
+Other useful dev commands:
 
 ```bash
-pnpm dev              # vite dev server saja (tanpa shell Tauri, untuk debug UI cepat)
-cd src-tauri && cargo check   # cek Rust tanpa build penuh
+pnpm dev                      # vite dev server only (no Tauri shell, for quick UI debugging)
+cd src-tauri && cargo check   # check Rust code without a full build
 ```
 
 ---
 
-## Build binary / installer production
+## Building production binaries / installers
 
-Build dilakukan **di platform targetnya masing-masing** — Tauri tidak cross-compile installer native (misal build `.exe` harus dari mesin Windows, `.dmg`/`.app` dari macOS, `.deb`/`.AppImage` dari Linux), kecuali kamu setup cross-compilation toolchain sendiri (advanced, tidak dibahas di sini — lihat [Tauri cross-platform build guide](https://tauri.app/distribute/) kalau perlu).
+Builds must be produced **on their target platform** — Tauri does not cross-compile native installers (e.g. a `.exe` must be built on Windows, a `.dmg`/`.app` on macOS, a `.deb`/`.AppImage` on Linux), unless you set up your own cross-compilation toolchain (advanced, not covered here — see the [Tauri distribution guide](https://tauri.app/distribute/) if needed).
 
 ### macOS
 
@@ -136,11 +136,11 @@ Build dilakukan **di platform targetnya masing-masing** — Tauri tidak cross-co
 pnpm tauri build
 ```
 
-Output di `src-tauri/target/release/bundle/`:
-- `macos/ZiCopy.app`
-- `dmg/ZiCopy_<versi>_<arch>.dmg`
+Output in `src-tauri/target/release/bundle/`:
+- `macos/CopyBrain.app`
+- `dmg/CopyBrain_<version>_<arch>.dmg`
 
-Untuk build universal binary (Intel + Apple Silicon):
+To build a universal binary (Intel + Apple Silicon):
 ```bash
 rustup target add x86_64-apple-darwin aarch64-apple-darwin
 pnpm tauri build --target universal-apple-darwin
@@ -148,14 +148,14 @@ pnpm tauri build --target universal-apple-darwin
 
 ### Windows
 
-Jalankan di mesin/VM Windows:
+Run on a Windows machine/VM:
 ```powershell
 pnpm tauri build
 ```
 
-Output di `src-tauri\target\release\bundle\`:
-- `msi\ZiCopy_<versi>_x64_en-US.msi`
-- `nsis\ZiCopy_<versi>_x64-setup.exe`
+Output in `src-tauri\target\release\bundle\`:
+- `msi\CopyBrain_<version>_x64_en-US.msi`
+- `nsis\CopyBrain_<version>_x64-setup.exe`
 
 ### Linux
 
@@ -163,71 +163,71 @@ Output di `src-tauri\target\release\bundle\`:
 pnpm tauri build
 ```
 
-Output di `src-tauri/target/release/bundle/`:
-- `deb/zicopy_<versi>_amd64.deb`
-- `rpm/zicopy-<versi>-1.x86_64.rpm` (jika `rpmbuild` tersedia)
-- `appimage/zicopy_<versi>_amd64.AppImage`
+Output in `src-tauri/target/release/bundle/`:
+- `deb/copybrain_<version>_amd64.deb`
+- `rpm/copybrain-<version>-1.x86_64.rpm` (if `rpmbuild` is available)
+- `appimage/copybrain_<version>_amd64.AppImage`
 
-### Build binary mentah tanpa installer (semua platform)
+### Raw binary without an installer (all platforms)
 
 ```bash
 pnpm tauri build --no-bundle
 ```
-Binary standalone ada di `src-tauri/target/release/zicopy` (`.exe` di Windows).
+The standalone binary is at `src-tauri/target/release/copybrain` (`.exe` on Windows).
 
-### Build target spesifik
+### Building specific targets
 
-Kalau `bundle.targets` di `tauri.conf.json` di-set `"all"` (default project ini), semua format installer yang tersedia di OS tersebut akan dibuild sekaligus. Untuk membatasi:
+With `bundle.targets` set to `"all"` in `tauri.conf.json` (this project's default), every installer format available on the current OS gets built. To restrict it:
 ```bash
-pnpm tauri build --bundles dmg        # contoh: macOS, hanya dmg
-pnpm tauri build --bundles msi,nsis   # contoh: Windows, msi + nsis
-pnpm tauri build --bundles deb,appimage  # contoh: Linux
+pnpm tauri build --bundles dmg           # example: macOS, dmg only
+pnpm tauri build --bundles msi,nsis      # example: Windows, msi + nsis
+pnpm tauri build --bundles deb,appimage  # example: Linux
 ```
 
 ---
 
-## Struktur project
+## Project structure
 
 ```
-ZiCopy/
-├─ src/                     # Frontend React + TypeScript
+CopyBrain/
+├─ src/                     # React + TypeScript frontend
 │  ├─ components/           # UI components (timeline, sidebar, dialogs, ui/ = shadcn primitives)
-│  ├─ hooks/                # TanStack Query hooks (data fetching ke Tauri commands)
+│  ├─ hooks/                # TanStack Query hooks (data fetching against Tauri commands)
 │  ├─ store/                # Zustand UI state
-│  ├─ lib/                  # helper (format tanggal, wrapper invoke Tauri, dll)
-│  └─ types.ts              # tipe data yang match dengan struct Rust
-├─ src-tauri/                # Backend Rust
+│  ├─ lib/                  # helpers (date formatting, Tauri invoke wrapper, etc)
+│  └─ types.ts              # data types matching the Rust structs
+├─ src-tauri/                # Rust backend
 │  ├─ src/
-│  │  ├─ db/                # init SQLite + schema + FTS5
-│  │  ├─ commands.rs        # semua Tauri command yang dipanggil dari frontend
-│  │  ├─ clipboard_watcher.rs  # background thread polling clipboard
-│  │  ├─ content_type.rs    # deteksi tipe konten (url/email/phone/path)
+│  │  ├─ db/                # SQLite init + schema + FTS5
+│  │  ├─ commands.rs        # all Tauri commands called from the frontend
+│  │  ├─ clipboard_watcher.rs  # background thread polling the clipboard
+│  │  ├─ content_type.rs    # content-type detection (url/email/phone/path)
 │  │  ├─ models.rs
-│  │  └─ lib.rs             # setup app: plugin, tray, shortcut, invoke_handler
-│  └─ tauri.conf.json       # konfigurasi window, bundle, identifier, dsb
+│  │  └─ lib.rs             # app setup: plugins, tray, shortcut, invoke_handler
+│  └─ tauri.conf.json       # window, bundle, identifier config, etc
 └─ package.json
 ```
 
 ---
 
-## Lokasi data
+## Data location
 
-Database SQLite (`zicopy.db`) disimpan di app data directory bawaan OS:
+The SQLite database (`copybrain.db`) is stored in the OS's default app data directory:
 
-| OS | Lokasi |
+| OS | Location |
 |---|---|
-| macOS | `~/Library/Application Support/com.mac.zicopy/` |
-| Windows | `%APPDATA%\com.mac.zicopy\` |
-| Linux | `~/.local/share/com.mac.zicopy/` |
+| macOS | `~/Library/Application Support/com.mac.copybrain/` |
+| Windows | `%APPDATA%\com.mac.copybrain\` |
+| Linux | `~/.local/share/com.mac.copybrain/` |
 
 ---
 
-## Roadmap (belum diimplementasi)
+## Roadmap (not yet implemented)
 
-- Dukungan clipboard gambar
+- Image clipboard support
 - OCR
 - AI semantic search
 - Cloud sync
 - Browser extension
 - Mobile companion app
-- Enkripsi database via SQLCipher (opsional, saat ini belum aktif)
+- Database encryption via SQLCipher (optional, currently disabled)

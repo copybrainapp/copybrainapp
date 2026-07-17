@@ -48,7 +48,7 @@ pub fn run() {
             app.manage(suppress.clone());
             clipboard_watcher::spawn(handle.clone(), suppress);
 
-            let show_item = MenuItem::with_id(app, "show", "Show ZiCopy", true, None::<&str>)?;
+            let show_item = MenuItem::with_id(app, "show", "Show CopyBrain", true, None::<&str>)?;
             let quit_item = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?;
             let tray_menu = Menu::with_items(app, &[&show_item, &quit_item])?;
 
