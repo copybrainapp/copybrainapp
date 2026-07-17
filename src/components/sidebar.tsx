@@ -65,9 +65,7 @@ export function Sidebar() {
   return (
     <aside className="flex h-full w-60 shrink-0 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground">
       <div className="flex items-center gap-2 px-4 py-4">
-        <div className="flex size-6 items-center justify-center rounded-md bg-primary text-primary-foreground text-xs font-bold">
-          C
-        </div>
+        <img src="/app-icon.png" alt="" className="size-6 rounded-md" />
         <span className="font-heading text-sm font-semibold">CopyBrain</span>
       </div>
 
