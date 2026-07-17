@@ -12,6 +12,7 @@ import {
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuTrigger,
@@ -110,26 +111,28 @@ export function ItemDetailDialog({
                 }
               />
               <DropdownMenuContent>
-                <DropdownMenuLabel>Add to collection</DropdownMenuLabel>
-                {collections?.length ? (
-                  collections.map((c) => (
-                    <DropdownMenuItem
-                      key={c.id}
-                      onClick={() =>
-                        addToCollection.mutate({
-                          collectionId: c.id,
-                          itemId: item.id,
-                        })
-                      }
-                    >
-                      {c.name}
+                <DropdownMenuGroup>
+                  <DropdownMenuLabel>Add to collection</DropdownMenuLabel>
+                  {collections?.length ? (
+                    collections.map((c) => (
+                      <DropdownMenuItem
+                        key={c.id}
+                        onClick={() =>
+                          addToCollection.mutate({
+                            collectionId: c.id,
+                            itemId: item.id,
+                          })
+                        }
+                      >
+                        {c.name}
+                      </DropdownMenuItem>
+                    ))
+                  ) : (
+                    <DropdownMenuItem disabled>
+                      No collections yet
                     </DropdownMenuItem>
-                  ))
-                ) : (
-                  <DropdownMenuItem disabled>
-                    No collections yet
-                  </DropdownMenuItem>
-                )}
+                  )}
+                </DropdownMenuGroup>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>

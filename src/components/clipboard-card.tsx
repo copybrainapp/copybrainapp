@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuTrigger,
@@ -146,37 +147,38 @@ export function ClipboardCard({
         </Tooltip>
 
         <DropdownMenu>
-          <Tooltip>
-            <TooltipTrigger
-              render={
-                <DropdownMenuTrigger
-                  render={<Button variant="ghost" size="icon-sm" />}
-                />
-              }
-            >
-              <FolderPlus className="size-3.5" />
-            </TooltipTrigger>
-            <TooltipContent>Add to collection</TooltipContent>
-          </Tooltip>
+          <DropdownMenuTrigger
+            render={
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                aria-label="Add to collection"
+              />
+            }
+          >
+            <FolderPlus className="size-3.5" />
+          </DropdownMenuTrigger>
           <DropdownMenuContent>
-            <DropdownMenuLabel>Add to collection</DropdownMenuLabel>
-            {collections?.length ? (
-              collections.map((c) => (
-                <DropdownMenuItem
-                  key={c.id}
-                  onClick={() =>
-                    addToCollection.mutate({
-                      collectionId: c.id,
-                      itemId: item.id,
-                    })
-                  }
-                >
-                  {c.name}
-                </DropdownMenuItem>
-              ))
-            ) : (
-              <DropdownMenuItem disabled>No collections yet</DropdownMenuItem>
-            )}
+            <DropdownMenuGroup>
+              <DropdownMenuLabel>Add to collection</DropdownMenuLabel>
+              {collections?.length ? (
+                collections.map((c) => (
+                  <DropdownMenuItem
+                    key={c.id}
+                    onClick={() =>
+                      addToCollection.mutate({
+                        collectionId: c.id,
+                        itemId: item.id,
+                      })
+                    }
+                  >
+                    {c.name}
+                  </DropdownMenuItem>
+                ))
+              ) : (
+                <DropdownMenuItem disabled>No collections yet</DropdownMenuItem>
+              )}
+            </DropdownMenuGroup>
           </DropdownMenuContent>
         </DropdownMenu>
 
