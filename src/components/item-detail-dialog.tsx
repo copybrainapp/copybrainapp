@@ -16,7 +16,6 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { useAddToCollection, useCollections } from "@/hooks/use-clipboard-data";
 import { contentTypeMeta } from "@/lib/content-type-meta";
 import { dateGroupLabel, timeLabel } from "@/lib/format";
@@ -58,8 +57,8 @@ export function ItemDetailDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg gap-5">
-        <DialogHeader>
+      <DialogContent className="flex max-h-[85vh] max-w-2xl flex-col gap-4">
+        <DialogHeader className="shrink-0">
           <DialogTitle className="flex items-center gap-2">
             <span className="flex size-6 items-center justify-center rounded-md bg-muted text-muted-foreground">
               <Icon className="size-3.5" />
@@ -72,13 +71,13 @@ export function ItemDetailDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <ScrollArea className="h-80 rounded-lg border border-border bg-muted/30">
+        <div className="min-h-0 flex-1 overflow-y-auto rounded-lg border border-border bg-muted/30">
           <p className="select-text whitespace-pre-wrap break-words p-4 text-sm leading-relaxed text-foreground">
             {item.content}
           </p>
-        </ScrollArea>
+        </div>
 
-        <DialogFooter className="flex-row flex-wrap items-center justify-between gap-2 sm:flex-row sm:justify-between">
+        <DialogFooter className="shrink-0 flex-row flex-wrap items-center justify-between gap-2 sm:flex-row sm:justify-between">
           <div className="flex flex-wrap items-center gap-1.5">
             <Button variant="outline" size="sm" onClick={handleCopy}>
               {copied ? (

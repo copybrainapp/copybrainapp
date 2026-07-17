@@ -8,7 +8,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   useCopyToClipboard,
   useDayItems,
@@ -32,8 +31,8 @@ export function DayDetailDialog({ date, open, onOpenChange }: DayDetailDialogPro
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg gap-5">
-        <DialogHeader>
+      <DialogContent className="flex max-h-[85vh] max-w-2xl flex-col gap-4">
+        <DialogHeader className="shrink-0">
           <DialogTitle className="font-heading text-xl font-semibold">
             {format(parseISO(date), "EEEE, MMMM d, yyyy")}
           </DialogTitle>
@@ -54,8 +53,8 @@ export function DayDetailDialog({ date, open, onOpenChange }: DayDetailDialogPro
             description="Nothing was copied on this day."
           />
         ) : (
-          <ScrollArea className="h-[26rem] -mx-1 px-1">
-            <div className="space-y-0.5">
+          <div className="-mx-1 min-h-0 flex-1 overflow-y-auto px-1">
+            <div className="space-y-0.5 pb-1">
               {items.map((item) => (
                 <ClipboardCard
                   key={item.id}
@@ -66,7 +65,7 @@ export function DayDetailDialog({ date, open, onOpenChange }: DayDetailDialogPro
                 />
               ))}
             </div>
-          </ScrollArea>
+          </div>
         )}
       </DialogContent>
     </Dialog>
