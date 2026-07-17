@@ -1,10 +1,12 @@
 import {
   ClipboardList,
   FolderClosed,
+  Info,
   Plus,
   Star,
 } from "lucide-react";
 import { useState, type ReactNode } from "react";
+import { AboutDialog } from "@/components/about-dialog";
 import { CreateCollectionDialog } from "@/components/create-collection-dialog";
 import { contentTypeMeta } from "@/lib/content-type-meta";
 import { cn } from "@/lib/utils";
@@ -54,6 +56,7 @@ export function Sidebar() {
   const { data: stats } = useStats();
   const { data: collections } = useCollections();
   const [createOpen, setCreateOpen] = useState(false);
+  const [aboutOpen, setAboutOpen] = useState(false);
 
   function select(v: ViewFilter) {
     setView(v);
@@ -144,7 +147,16 @@ export function Sidebar() {
         </div>
       </div>
 
+      <button
+        onClick={() => setAboutOpen(true)}
+        className="flex items-center gap-2 border-t border-sidebar-border px-4 py-2.5 text-left text-xs text-muted-foreground transition-colors hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground"
+      >
+        <Info className="size-3.5" />
+        About CopyBrain
+      </button>
+
       <CreateCollectionDialog open={createOpen} onOpenChange={setCreateOpen} />
+      <AboutDialog open={aboutOpen} onOpenChange={setAboutOpen} />
     </aside>
   );
 }
