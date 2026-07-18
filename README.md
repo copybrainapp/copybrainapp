@@ -8,6 +8,18 @@ CopyBrain is **open source** and MIT-licensed. Since it stores everything you've
 
 ---
 
+## Download
+
+Grab the latest installer for your platform from the [Releases page](https://github.com/copybrainapp/copybrainapp-releases/releases/latest):
+
+- **macOS**: `CopyBrain_<version>_universal.dmg`
+- **Windows**: `CopyBrain_<version>_x64-setup.exe` or `CopyBrain_<version>_x64_en-US.msi`
+- **Linux**: `CopyBrain_<version>_amd64.deb`, `CopyBrain-<version>-1.x86_64.rpm`, or `CopyBrain_<version>_amd64.AppImage`
+
+Prefer to build it yourself? See [Building production binaries / installers](#building-production-binaries--installers) below.
+
+---
+
 ## Features
 
 - Unlimited clipboard history, stored locally in SQLite
