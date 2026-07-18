@@ -74,3 +74,19 @@ jobs:
           releaseDraft: true
           prerelease: false
           args: ${{ matrix.args }}
+
+      - name: Package portable Windows build
+        if: matrix.platform == 'windows-latest'
+        shell: pwsh
+        run: |
+          $version = "${{ github.ref_name }}" -replace '^v', ''
+          $dest = "CopyBrain_${version}_x64_portable"
+          New-Item -ItemType Directory -Path $dest | Out-Null
+          Copy-Item "src-tauri/target/release/copybrain.exe" -Destination "$dest/CopyBrain.exe"
+          Compress-Archive -Path "$dest/*" -DestinationPath "$dest.zip"
+
+      - name: Upload portable build to release
+        if: matrix.platform == 'windows-latest'
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_REPO_TOKEN }}
+        run: gh release upload "${{ github.ref_name }}" CopyBrain_*_x64_portable.zip --repo copybrainapp/copybrainapp-releases --clobber
