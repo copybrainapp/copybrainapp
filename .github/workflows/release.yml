@@ -70,6 +70,7 @@ jobs:
           repo: copybrainapp-releases
           tagName: ${{ github.ref_name }}
           releaseName: "CopyBrain ${{ github.ref_name }}"
+          releaseCommitish: main
           releaseDraft: true
           prerelease: false
           args: ${{ matrix.args }}
