@@ -64,8 +64,10 @@ jobs:
       - name: Build Tauri app
         uses: tauri-apps/tauri-action@v0
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.RELEASE_REPO_TOKEN }}
         with:
+          owner: copybrainapp
+          repo: copybrainapp-releases
           tagName: ${{ github.ref_name }}
           releaseName: "CopyBrain ${{ github.ref_name }}"
           releaseDraft: true
