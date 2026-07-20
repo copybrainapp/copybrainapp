@@ -83,7 +83,7 @@ export function AboutDialog({ open, onOpenChange }: AboutDialogProps) {
             className="mt-1 flex items-center gap-1 text-xs text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
           >
             <ShieldCheck className="size-3.5" />
-            Not a keylogger — open source &amp; privacy
+            100% private, secure &amp; open source
           </button>
         </div>
       </DialogContent>

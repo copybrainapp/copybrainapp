@@ -1,10 +1,10 @@
 # Privacy, Security & Terms
 
-CopyBrain runs a background process that continuously reads your clipboard — by design, that's what a clipboard manager does. We know that description alone can sound alarming (it's the same behavior malware uses), so this document explains exactly what the app does, what it deliberately does not do, and how to verify all of it yourself.
+CopyBrain is built to be 100% private, secure, and transparent: everything stays on your device, nothing is collected, and the full source is open for anyone to verify. This document explains exactly how that works.
 
-## CopyBrain is not a keylogger
+## How CopyBrain reads your clipboard
 
-A keylogger records every keystroke you type, regardless of whether you ever copy anything. **CopyBrain never reads keystrokes.** It only reacts to the system clipboard actually changing — the same clipboard-change event every clipboard manager (Windows Clipboard History, macOS's own clipboard, Paste, Maccy, Ditto, etc.) relies on. If you never press Copy, CopyBrain has nothing to record.
+CopyBrain only reacts to the system clipboard actually changing — the same clipboard-change event every clipboard manager (Windows Clipboard History, macOS's own clipboard, Paste, Maccy, Ditto, etc.) relies on. **It never reads keystrokes.** A keylogger records every key you press regardless of whether you ever copy anything; CopyBrain has nothing to record unless you actually press Copy.
 
 ## What CopyBrain does
 

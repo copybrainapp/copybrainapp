@@ -4,7 +4,7 @@
 
 CopyBrain is a modern clipboard timeline application for Windows, macOS, and Linux. Unlike typical clipboard managers that only keep the last few items, CopyBrain automatically archives your entire clipboard history into a searchable timeline — find anything you copied yesterday, last week, last month, or even years ago.
 
-CopyBrain is **open source** and MIT-licensed. Since it stores everything you've ever copied — including things like passwords or tokens that end up on your clipboard by accident — the source is public so anyone can audit exactly what it does with your data (spoiler: nothing leaves your machine) or build it themselves from source instead of trusting a downloaded binary. It's not a keylogger — see [PRIVACY.md](./PRIVACY.md) for exactly what it does and doesn't do.
+CopyBrain is **open source** and MIT-licensed. Since it stores everything you've ever copied — including things like passwords or tokens that end up on your clipboard by accident — the source is public so anyone can audit exactly what it does with your data (spoiler: nothing leaves your machine) or build it themselves from source instead of trusting a downloaded binary. 100% private, secure, and transparent by design — see [PRIVACY.md](./PRIVACY.md) for the details.
 
 ---
 
@@ -268,7 +268,7 @@ For larger changes (new features, architecture changes), open an issue first to 
 
 ## Privacy & Security
 
-CopyBrain is not a keylogger and makes no network requests. See [PRIVACY.md](./PRIVACY.md) for the full breakdown of what it does and doesn't do with your data.
+CopyBrain is 100% private and secure — no data collection, no network requests, fully open source. See [PRIVACY.md](./PRIVACY.md) for the full breakdown of what it does and doesn't do with your data.
 
 ## License
 
