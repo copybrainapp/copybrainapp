@@ -80,6 +80,7 @@ pub fn spawn(app_handle: AppHandle, suppress: SuppressState) {
 
             if inserted {
                 let _ = app_handle.emit("clipboard://new-item", &id);
+                crate::refresh_tray_menu(&app_handle);
             }
         }
     });

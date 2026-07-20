@@ -105,27 +105,35 @@ pub fn toggle_favorite(db: State<DbState>, id: String) -> Result<bool, String> {
 }
 
 #[tauri::command]
-pub fn delete_item(db: State<DbState>, id: String) -> Result<(), String> {
-    let conn = db.0.lock().map_err(|e| e.to_string())?;
-    conn.execute("DELETE FROM clipboard_items WHERE id = ?1", params![id])
-        .map_err(|e| e.to_string())?;
+pub fn delete_item(app: AppHandle, db: State<DbState>, id: String) -> Result<(), String> {
+    {
+        let conn = db.0.lock().map_err(|e| e.to_string())?;
+        conn.execute("DELETE FROM clipboard_items WHERE id = ?1", params![id])
+            .map_err(|e| e.to_string())?;
+    }
+    crate::refresh_tray_menu(&app);
     Ok(())
 }
 
 #[tauri::command]
-pub fn clear_history(db: State<DbState>, keep_favorites: bool) -> Result<(), String> {
-    let conn = db.0.lock().map_err(|e| e.to_string())?;
-    let sql = if keep_favorites {
-        "DELETE FROM clipboard_items WHERE is_favorite = 0"
-    } else {
-        "DELETE FROM clipboard_items"
-    };
-    conn.execute(sql, []).map_err(|e| e.to_string())?;
+pub fn clear_history(app: AppHandle, db: State<DbState>, keep_favorites: bool) -> Result<(), String> {
+    {
+        let conn = db.0.lock().map_err(|e| e.to_string())?;
+        let sql = if keep_favorites {
+            "DELETE FROM clipboard_items WHERE is_favorite = 0"
+        } else {
+            "DELETE FROM clipboard_items"
+        };
+        conn.execute(sql, []).map_err(|e| e.to_string())?;
+    }
+    crate::refresh_tray_menu(&app);
     Ok(())
 }
 
-#[tauri::command]
-pub fn copy_to_clipboard(suppress: State<SuppressState>, text: String) -> Result<(), String> {
+/// Writes `text` to the OS clipboard and marks it in `suppress` so the
+/// watcher thread doesn't re-capture our own write as a new history entry.
+/// Shared by the `copy_to_clipboard` command and the tray quick-paste menu.
+pub fn write_to_clipboard(suppress: &SuppressState, text: String) -> Result<(), String> {
     {
         let mut guard = suppress.lock().map_err(|e| e.to_string())?;
         *guard = Some(text.clone());
@@ -154,6 +162,11 @@ pub fn copy_to_clipboard(suppress: State<SuppressState>, text: String) -> Result
     }
 
     Ok(())
+}
+
+#[tauri::command]
+pub fn copy_to_clipboard(suppress: State<SuppressState>, text: String) -> Result<(), String> {
+    write_to_clipboard(&suppress, text)
 }
 
 #[tauri::command]
