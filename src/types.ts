@@ -41,3 +41,10 @@ export interface DayCount {
   day: string;
   count: number;
 }
+
+export interface MonitoringState {
+  paused: boolean;
+  paused_until: number | null;
+  paused_indefinite: boolean;
+  incognito_next: boolean;
+}

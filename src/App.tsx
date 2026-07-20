@@ -5,6 +5,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { CalendarView } from "@/components/calendar-view";
 import { EmptyState } from "@/components/empty-state";
+import { MonitoringBanner } from "@/components/monitoring-banner";
+import { MonitoringControls } from "@/components/monitoring-controls";
 import { SearchBar } from "@/components/search-bar";
 import { Sidebar } from "@/components/sidebar";
 import { TimelineList } from "@/components/timeline-list";
@@ -18,6 +20,7 @@ import {
   useTimeline,
   useToggleFavorite,
 } from "@/hooks/use-clipboard-data";
+import { useMonitoringState } from "@/hooks/use-monitoring-state";
 import { contentTypeMeta } from "@/lib/content-type-meta";
 import { useUiStore } from "@/store/ui-store";
 
@@ -50,9 +53,20 @@ function App() {
   const copyToClipboard = useCopyToClipboard();
   const toggleFavorite = useToggleFavorite();
   const deleteItem = useDeleteItem();
+  const monitoring = useMonitoringState();
 
   useEffect(() => {
     const unlisten = listen("clipboard://new-item", () => {
+      queryClient.invalidateQueries({ queryKey: ["timeline"] });
+      queryClient.invalidateQueries({ queryKey: ["stats"] });
+    });
+    return () => {
+      unlisten.then((fn) => fn());
+    };
+  }, [queryClient]);
+
+  useEffect(() => {
+    const unlisten = listen("clipboard://item-deleted", () => {
       queryClient.invalidateQueries({ queryKey: ["timeline"] });
       queryClient.invalidateQueries({ queryKey: ["stats"] });
     });
@@ -228,7 +242,19 @@ function App() {
             </h1>
           </div>
           {activeSection === "timeline" && <SearchBar />}
+          <MonitoringControls
+            state={monitoring.state}
+            onPause={monitoring.pause}
+            onResume={monitoring.resume}
+            onToggleIncognito={monitoring.toggleIncognito}
+          />
         </header>
+
+        <MonitoringBanner
+          state={monitoring.state}
+          onResume={monitoring.resume}
+          onCancelIncognito={monitoring.toggleIncognito}
+        />
 
         <div className="min-h-0 flex-1">
           {activeSection === "calendar" ? (

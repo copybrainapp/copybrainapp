@@ -28,6 +28,7 @@ import {
 import { useAddToCollection, useCollections } from "@/hooks/use-clipboard-data";
 import { getContentTypeMeta } from "@/lib/content-type-meta";
 import { dateGroupLabel, maskSecret, timeLabel } from "@/lib/format";
+import { getQuickActions } from "@/lib/quick-actions";
 import { detectSocialPlatform } from "@/lib/social-platform";
 import { cn } from "@/lib/utils";
 import type { ClipboardItem } from "@/types";
@@ -65,6 +66,7 @@ export function ItemDetailDialog({
     item.content_type === "social" ? detectSocialPlatform(item.content) : null;
   const Icon = social?.icon ?? meta.icon;
   const isSecret = item.content_type === "secret";
+  const quickActions = getQuickActions(item, onCopy);
 
   function handleCopy() {
     if (!item) return;
@@ -141,6 +143,24 @@ export function ItemDetailDialog({
               />
               {item.is_favorite ? "Unfavorite" : "Favorite"}
             </Button>
+            {quickActions.map((action) => (
+              <Button
+                key={action.label}
+                variant="outline"
+                size="sm"
+                onClick={() => action.run()}
+              >
+                {action.swatch ? (
+                  <span
+                    className="size-3.5 rounded-full border border-border"
+                    style={{ backgroundColor: action.swatch }}
+                  />
+                ) : (
+                  <action.icon className="size-3.5" />
+                )}
+                {action.label}
+              </Button>
+            ))}
             <DropdownMenu>
               <DropdownMenuTrigger
                 render={

@@ -16,3 +16,8 @@ export function timeLabel(timestampMs: number): string {
 export function maskSecret(): string {
   return "•".repeat(28);
 }
+
+export function remainingLabel(untilMs: number): string {
+  const remainingMin = Math.ceil((untilMs - Date.now()) / 60_000);
+  return remainingMin <= 1 ? "less than a minute left" : `${remainingMin} min left`;
+}

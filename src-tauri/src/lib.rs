@@ -3,10 +3,12 @@ mod commands;
 mod content_type;
 mod db;
 mod models;
+mod monitoring;
 
 use db::DbState;
+use monitoring::{IncognitoNextState, MonitoringState};
 use std::sync::{Arc, Mutex};
-use tauri::menu::{IsMenuItem, Menu, MenuItem, PredefinedMenuItem};
+use tauri::menu::{CheckMenuItem, IsMenuItem, Menu, MenuItem, PredefinedMenuItem, Submenu};
 use tauri::tray::{TrayIcon, TrayIconBuilder};
 use tauri::{Emitter, Manager, WindowEvent, Wry};
 use tauri_plugin_autostart::MacosLauncher;
@@ -42,6 +44,56 @@ fn tray_item_label(content: &str, content_type: &str) -> String {
         format!("{truncated}…")
     } else {
         flattened
+    }
+}
+
+fn format_remaining(until_ms: i64) -> String {
+    let remaining_ms = (until_ms - chrono::Utc::now().timestamp_millis()).max(0);
+    let remaining_min = (remaining_ms as f64 / 60_000.0).ceil() as i64;
+    if remaining_min <= 1 {
+        "less than a minute left".to_string()
+    } else {
+        format!("{remaining_min} min left")
+    }
+}
+
+fn last_item_preview(app: &tauri::AppHandle) -> Option<(String, String)> {
+    let db = app.state::<DbState>();
+    let conn = db.0.lock().ok()?;
+    conn.query_row(
+        "SELECT content, content_type FROM clipboard_items ORDER BY created_at DESC LIMIT 1",
+        [],
+        |row| Ok((row.get::<_, String>(0)?, row.get::<_, String>(1)?)),
+    )
+    .ok()
+}
+
+/// Emits the current pause/incognito state to the frontend and refreshes the
+/// tray menu so all three surfaces (tray, global shortcuts, main window)
+/// stay in sync — called after any state-mutating action.
+fn broadcast_monitoring_state(app: &tauri::AppHandle) {
+    let monitoring = app.state::<MonitoringState>();
+    let incognito = app.state::<IncognitoNextState>();
+    let snap = monitoring::snapshot(&monitoring, &incognito);
+    let _ = app.emit("monitoring://state-changed", snap);
+    refresh_tray_menu(app);
+}
+
+/// Deletes the most recently captured item — the tray/shortcut "panic
+/// button" for "aduh, ke-copy password!".
+fn forget_last_item(app: &tauri::AppHandle) {
+    let db = app.state::<DbState>();
+    let deleted = {
+        let Ok(conn) = db.0.lock() else { return };
+        conn.execute(
+            "DELETE FROM clipboard_items WHERE id = (SELECT id FROM clipboard_items ORDER BY created_at DESC LIMIT 1)",
+            [],
+        )
+        .unwrap_or(0)
+    };
+    if deleted > 0 {
+        refresh_tray_menu(app);
+        let _ = app.emit("clipboard://item-deleted", ());
     }
 }
 
@@ -96,6 +148,78 @@ fn refresh_tray_menu(app: &tauri::AppHandle) {
                 owned_items.push(Box::new(item));
             }
         }
+    }
+
+    if let Ok(sep) = PredefinedMenuItem::separator(app) {
+        owned_items.push(Box::new(sep));
+    }
+
+    // Privacy block — deliberately grouped together and separated from
+    // navigation/quit so a "aduh ke-copy password!" moment has one obvious
+    // place to look, not three scattered items.
+    let incognito_active = *app.state::<IncognitoNextState>().lock().unwrap();
+    let incognito_label = if incognito_active {
+        "✓ Incognito Active"
+    } else {
+        "🕶 Incognito Next Copy"
+    };
+    if let Ok(incognito_item) = CheckMenuItem::with_id(
+        app,
+        "incognito_toggle",
+        incognito_label,
+        true,
+        incognito_active,
+        None::<&str>,
+    ) {
+        owned_items.push(Box::new(incognito_item));
+    }
+
+    let capture_state = *app.state::<MonitoringState>().lock().unwrap();
+    match capture_state {
+        monitoring::CaptureState::Active => {
+            let mut pause_items: Vec<Box<dyn IsMenuItem<Wry>>> = Vec::new();
+            for (id, label) in [
+                ("pause:5", "For 5 minutes"),
+                ("pause:30", "For 30 minutes"),
+                ("pause:60", "For 1 hour"),
+                ("pause:indefinite", "Until I resume"),
+            ] {
+                if let Ok(item) = MenuItem::with_id(app, id, label, true, None::<&str>) {
+                    pause_items.push(Box::new(item));
+                }
+            }
+            let pause_refs: Vec<&dyn IsMenuItem<Wry>> =
+                pause_items.iter().map(|i| i.as_ref()).collect();
+            if let Ok(submenu) = Submenu::with_items(app, "⏸ Pause Monitoring", true, &pause_refs) {
+                owned_items.push(Box::new(submenu));
+            }
+        }
+        monitoring::CaptureState::PausedUntil(until) => {
+            let label = format!("▶ Resume Monitoring ({})", format_remaining(until));
+            if let Ok(item) = MenuItem::with_id(app, "resume", label, true, None::<&str>) {
+                owned_items.push(Box::new(item));
+            }
+        }
+        monitoring::CaptureState::PausedIndefinite => {
+            if let Ok(item) =
+                MenuItem::with_id(app, "resume", "▶ Resume Monitoring", true, None::<&str>)
+            {
+                owned_items.push(Box::new(item));
+            }
+        }
+    }
+
+    let (forget_label, forget_enabled) = match last_item_preview(app) {
+        Some((content, content_type)) => {
+            let preview = tray_item_label(&content, &content_type);
+            (format!("✕ Forget Last Item ({preview})"), true)
+        }
+        None => ("✕ Forget Last Item".to_string(), false),
+    };
+    if let Ok(item) =
+        MenuItem::with_id(app, "forget_last", forget_label, forget_enabled, None::<&str>)
+    {
+        owned_items.push(Box::new(item));
     }
 
     if let Ok(sep) = PredefinedMenuItem::separator(app) {
@@ -168,7 +292,18 @@ pub fn run() {
 
             let suppress: clipboard_watcher::SuppressState = Arc::new(Mutex::new(None));
             app.manage(suppress.clone());
-            clipboard_watcher::spawn(handle.clone(), suppress);
+
+            let monitoring_state = monitoring::new_monitoring_state();
+            app.manage(monitoring_state.clone());
+            let incognito_next_state = monitoring::new_incognito_next_state();
+            app.manage(incognito_next_state.clone());
+
+            clipboard_watcher::spawn(
+                handle.clone(),
+                suppress,
+                monitoring_state,
+                incognito_next_state,
+            );
 
             // macOS only: run as a pure menu-bar utility (no Dock icon), matching
             // apps like Trackabi/CCleaner. Windows/Linux have no Dock concept —
@@ -204,6 +339,17 @@ pub fn run() {
                         paste_from_tray(app, item_id);
                         return;
                     }
+                    if let Some(spec) = id.strip_prefix("pause:") {
+                        let monitoring = app.state::<MonitoringState>();
+                        if spec == "indefinite" {
+                            *monitoring.lock().unwrap() = monitoring::CaptureState::PausedIndefinite;
+                        } else if let Ok(minutes) = spec.parse::<i64>() {
+                            let until = chrono::Utc::now().timestamp_millis() + minutes * 60_000;
+                            *monitoring.lock().unwrap() = monitoring::CaptureState::PausedUntil(until);
+                        }
+                        broadcast_monitoring_state(app);
+                        return;
+                    }
                     match id {
                         "show" => toggle_main_window(app),
                         "about" => {
@@ -213,6 +359,19 @@ pub fn run() {
                             }
                             let _ = app.emit("show-about", ());
                         }
+                        "incognito_toggle" => {
+                            let incognito = app.state::<IncognitoNextState>();
+                            let mut guard = incognito.lock().unwrap();
+                            *guard = !*guard;
+                            drop(guard);
+                            broadcast_monitoring_state(app);
+                        }
+                        "resume" => {
+                            *app.state::<MonitoringState>().lock().unwrap() =
+                                monitoring::CaptureState::Active;
+                            broadcast_monitoring_state(app);
+                        }
+                        "forget_last" => forget_last_item(app),
                         "quit" => app.exit(0),
                         _ => {}
                     }
@@ -227,6 +386,30 @@ pub fn run() {
                 move |_app, _shortcut, event| {
                     if event.state() == ShortcutState::Pressed {
                         toggle_main_window(&toggle_handle);
+                    }
+                },
+            )?;
+
+            let incognito_handle = handle.clone();
+            app.global_shortcut().on_shortcut(
+                "CmdOrCtrl+Shift+Alt+V",
+                move |_app, _shortcut, event| {
+                    if event.state() == ShortcutState::Pressed {
+                        let incognito = incognito_handle.state::<IncognitoNextState>();
+                        let mut guard = incognito.lock().unwrap();
+                        *guard = !*guard;
+                        drop(guard);
+                        broadcast_monitoring_state(&incognito_handle);
+                    }
+                },
+            )?;
+
+            let forget_handle = handle.clone();
+            app.global_shortcut().on_shortcut(
+                "CmdOrCtrl+Shift+Alt+X",
+                move |_app, _shortcut, event| {
+                    if event.state() == ShortcutState::Pressed {
+                        forget_last_item(&forget_handle);
                     }
                 },
             )?;
@@ -259,6 +442,11 @@ pub fn run() {
             commands::get_items_by_date,
             commands::export_history,
             commands::import_history,
+            commands::get_monitoring_state,
+            commands::pause_monitoring,
+            commands::resume_monitoring,
+            commands::toggle_incognito_next,
+            commands::forget_last_item,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

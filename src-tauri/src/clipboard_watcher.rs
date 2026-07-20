@@ -1,5 +1,6 @@
 use crate::content_type::detect_content_type;
 use crate::db::DbState;
+use crate::monitoring::{self, IncognitoNextState, MonitoringState};
 use active_win_pos_rs::get_active_window;
 use arboard::Clipboard;
 use chrono::Utc;
@@ -28,7 +29,12 @@ fn active_app_name() -> Option<String> {
 /// watcher can skip re-capturing its own writes as new history entries.
 pub type SuppressState = Arc<Mutex<Option<String>>>;
 
-pub fn spawn(app_handle: AppHandle, suppress: SuppressState) {
+pub fn spawn(
+    app_handle: AppHandle,
+    suppress: SuppressState,
+    monitoring: MonitoringState,
+    incognito_next: IncognitoNextState,
+) {
     thread::spawn(move || {
         let mut clipboard = match Clipboard::new() {
             Ok(c) => c,
@@ -59,6 +65,17 @@ pub fn spawn(app_handle: AppHandle, suppress: SuppressState) {
                     *guard = None;
                     continue;
                 }
+            }
+
+            let (should_skip, state_changed) =
+                monitoring::check_and_advance(&monitoring, &incognito_next);
+            if state_changed {
+                let snap = monitoring::snapshot(&monitoring, &incognito_next);
+                let _ = app_handle.emit("monitoring://state-changed", snap);
+                crate::refresh_tray_menu(&app_handle);
+            }
+            if should_skip {
+                continue;
             }
 
             let content_type = detect_content_type(&text);

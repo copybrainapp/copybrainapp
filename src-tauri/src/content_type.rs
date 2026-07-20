@@ -113,6 +113,13 @@ fn looks_high_entropy(trimmed: &str) -> bool {
     if trimmed.contains(char::is_whitespace) {
         return false;
     }
+    // Real secrets/tokens don't contain structural punctuation — a compact,
+    // space-free JSON blob like {"a":1,"b":true} scores as "high entropy"
+    // under the char-class/randomness check below but is obviously not a
+    // password, so rule it out up front.
+    if trimmed.contains(['{', '}', '[', ']', '"', ':', ',']) {
+        return false;
+    }
     let len = trimmed.chars().count();
     if !(20..=200).contains(&len) {
         return false;

@@ -14,6 +14,7 @@ import { ItemDetailDialog } from "@/components/item-detail-dialog"
 import { useAddToCollection, useCollections } from "@/hooks/use-clipboard-data"
 import { getContentTypeMeta } from "@/lib/content-type-meta"
 import { maskSecret, timeLabel } from "@/lib/format"
+import { getQuickActions } from "@/lib/quick-actions"
 import { detectSocialPlatform } from "@/lib/social-platform"
 import { cn } from "@/lib/utils"
 import type { ClipboardItem } from "@/types"
@@ -49,6 +50,7 @@ export function ClipboardCard({
 
   const isSecret = item.content_type === "secret"
   const isLong = item.content.length > LONG_CONTENT_THRESHOLD || item.content.split("\n").length > 3
+  const quickActions = getQuickActions(item, onCopy)
 
   // Secrets re-mask themselves after a few seconds instead of staying
   // revealed indefinitely, so a card left open on screen doesn't leak a
@@ -147,6 +149,33 @@ export function ClipboardCard({
           </TooltipTrigger>
           <TooltipContent>Copy</TooltipContent>
         </Tooltip>
+
+        {quickActions.map((action) => (
+          <Tooltip key={action.label}>
+            <TooltipTrigger
+              render={
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    action.run()
+                  }}
+                />
+              }
+            >
+              {action.swatch ? (
+                <span
+                  className="size-3.5 rounded-full border border-border"
+                  style={{ backgroundColor: action.swatch }}
+                />
+              ) : (
+                <action.icon className="size-3.5" />
+              )}
+            </TooltipTrigger>
+            <TooltipContent>{action.label}</TooltipContent>
+          </Tooltip>
+        ))}
 
         <Tooltip>
           <TooltipTrigger render={<Button variant="ghost" size="icon-sm" onClick={() => onToggleFavorite(item.id)} />}>

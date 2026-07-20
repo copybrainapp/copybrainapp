@@ -1,8 +1,9 @@
 use crate::clipboard_watcher::SuppressState;
 use crate::db::DbState;
 use crate::models::{ClipboardItem, Collection, DayCount, Stats, TypeCount};
+use crate::monitoring::{self, CaptureState, IncognitoNextState, MonitoringState, MonitoringStateDto};
 use rusqlite::{params, Row};
-use tauri::{AppHandle, State};
+use tauri::{AppHandle, Emitter, State};
 use tauri_plugin_autostart::ManagerExt;
 
 const ITEM_COLUMNS: &str =
@@ -418,4 +419,74 @@ pub fn get_collection_items(
         .query_map(params![collection_id], row_to_item)
         .map_err(|e| e.to_string())?;
     rows.collect::<Result<Vec<_>, _>>().map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub fn get_monitoring_state(
+    monitoring: State<MonitoringState>,
+    incognito: State<IncognitoNextState>,
+) -> MonitoringStateDto {
+    monitoring::snapshot(&monitoring, &incognito)
+}
+
+#[tauri::command]
+pub fn pause_monitoring(
+    app: AppHandle,
+    monitoring: State<MonitoringState>,
+    incognito: State<IncognitoNextState>,
+    minutes: Option<i64>,
+) -> MonitoringStateDto {
+    *monitoring.lock().unwrap() = match minutes {
+        Some(m) => CaptureState::PausedUntil(chrono::Utc::now().timestamp_millis() + m * 60_000),
+        None => CaptureState::PausedIndefinite,
+    };
+    crate::refresh_tray_menu(&app);
+    let snap = monitoring::snapshot(&monitoring, &incognito);
+    let _ = app.emit("monitoring://state-changed", snap.clone());
+    snap
+}
+
+#[tauri::command]
+pub fn resume_monitoring(
+    app: AppHandle,
+    monitoring: State<MonitoringState>,
+    incognito: State<IncognitoNextState>,
+) -> MonitoringStateDto {
+    *monitoring.lock().unwrap() = CaptureState::Active;
+    crate::refresh_tray_menu(&app);
+    let snap = monitoring::snapshot(&monitoring, &incognito);
+    let _ = app.emit("monitoring://state-changed", snap.clone());
+    snap
+}
+
+#[tauri::command]
+pub fn toggle_incognito_next(
+    app: AppHandle,
+    monitoring: State<MonitoringState>,
+    incognito: State<IncognitoNextState>,
+) -> MonitoringStateDto {
+    let mut guard = incognito.lock().unwrap();
+    *guard = !*guard;
+    drop(guard);
+    crate::refresh_tray_menu(&app);
+    let snap = monitoring::snapshot(&monitoring, &incognito);
+    let _ = app.emit("monitoring://state-changed", snap.clone());
+    snap
+}
+
+#[tauri::command]
+pub fn forget_last_item(app: AppHandle, db: State<DbState>) -> Result<bool, String> {
+    let deleted = {
+        let conn = db.0.lock().map_err(|e| e.to_string())?;
+        conn.execute(
+            "DELETE FROM clipboard_items WHERE id = (SELECT id FROM clipboard_items ORDER BY created_at DESC LIMIT 1)",
+            [],
+        )
+        .map_err(|e| e.to_string())?
+    };
+    if deleted > 0 {
+        crate::refresh_tray_menu(&app);
+        let _ = app.emit("clipboard://item-deleted", ());
+    }
+    Ok(deleted > 0)
 }

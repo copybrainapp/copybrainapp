@@ -4,6 +4,7 @@ import type {
   Collection,
   ContentType,
   DayCount,
+  MonitoringState,
   Stats,
 } from "@/types";
 
@@ -93,4 +94,24 @@ export function exportHistory(path: string) {
 
 export function importHistory(path: string) {
   return invoke<number>("import_history", { path });
+}
+
+export function getMonitoringState() {
+  return invoke<MonitoringState>("get_monitoring_state");
+}
+
+export function pauseMonitoring(minutes?: number) {
+  return invoke<MonitoringState>("pause_monitoring", { minutes: minutes ?? null });
+}
+
+export function resumeMonitoring() {
+  return invoke<MonitoringState>("resume_monitoring");
+}
+
+export function toggleIncognitoNext() {
+  return invoke<MonitoringState>("toggle_incognito_next");
+}
+
+export function forgetLastItem() {
+  return invoke<boolean>("forget_last_item");
 }
