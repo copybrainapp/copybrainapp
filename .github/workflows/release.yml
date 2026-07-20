@@ -37,7 +37,10 @@ jobs:
             file \
             libssl-dev \
             libxdo-dev \
-            libayatana-appindicator3-dev
+            libayatana-appindicator3-dev \
+            libxcb-ewmh-dev \
+            libxcb-randr0-dev \
+            libdbus-1-dev
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable

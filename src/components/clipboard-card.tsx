@@ -1,45 +1,33 @@
-import {
-  Check,
-  Copy,
-  Eye,
-  EyeOff,
-  FolderPlus,
-  Star,
-  Trash2,
-} from "lucide-react";
-import { useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
+import { Check, Copy, Eye, EyeOff, FolderPlus, Star, Trash2 } from "lucide-react"
+import { useEffect, useState } from "react"
+import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { ItemDetailDialog } from "@/components/item-detail-dialog";
-import { useAddToCollection, useCollections } from "@/hooks/use-clipboard-data";
-import { getContentTypeMeta } from "@/lib/content-type-meta";
-import { maskSecret, timeLabel } from "@/lib/format";
-import { detectSocialPlatform } from "@/lib/social-platform";
-import { cn } from "@/lib/utils";
-import type { ClipboardItem } from "@/types";
+  DropdownMenuTrigger
+} from "@/components/ui/dropdown-menu"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
+import { ItemDetailDialog } from "@/components/item-detail-dialog"
+import { useAddToCollection, useCollections } from "@/hooks/use-clipboard-data"
+import { getContentTypeMeta } from "@/lib/content-type-meta"
+import { maskSecret, timeLabel } from "@/lib/format"
+import { detectSocialPlatform } from "@/lib/social-platform"
+import { cn } from "@/lib/utils"
+import type { ClipboardItem } from "@/types"
 
-const LONG_CONTENT_THRESHOLD = 180;
-const SECRET_REVEAL_MS = 8000;
+const LONG_CONTENT_THRESHOLD = 180
+const SECRET_REVEAL_MS = 8000
 
 interface ClipboardCardProps {
-  item: ClipboardItem;
-  selected?: boolean;
-  onCopy: (text: string) => void;
-  onToggleFavorite: (id: string) => void;
-  onDelete: (id: string) => void;
-  onSelect?: (id: string) => void;
+  item: ClipboardItem
+  selected?: boolean
+  onCopy: (text: string) => void
+  onToggleFavorite: (id: string) => void
+  onDelete: (id: string) => void
+  onSelect?: (id: string) => void
 }
 
 export function ClipboardCard({
@@ -48,36 +36,33 @@ export function ClipboardCard({
   onCopy,
   onToggleFavorite,
   onDelete,
-  onSelect,
+  onSelect
 }: ClipboardCardProps) {
-  const [copied, setCopied] = useState(false);
-  const [detailOpen, setDetailOpen] = useState(false);
-  const [revealed, setRevealed] = useState(false);
-  const meta = getContentTypeMeta(item.content_type);
-  const social =
-    item.content_type === "social" ? detectSocialPlatform(item.content) : null;
-  const Icon = social?.icon ?? meta.icon;
-  const { data: collections } = useCollections();
-  const addToCollection = useAddToCollection();
+  const [copied, setCopied] = useState(false)
+  const [detailOpen, setDetailOpen] = useState(false)
+  const [revealed, setRevealed] = useState(false)
+  const meta = getContentTypeMeta(item.content_type)
+  const social = item.content_type === "social" ? detectSocialPlatform(item.content) : null
+  const Icon = social?.icon ?? meta.icon
+  const { data: collections } = useCollections()
+  const addToCollection = useAddToCollection()
 
-  const isSecret = item.content_type === "secret";
-  const isLong =
-    item.content.length > LONG_CONTENT_THRESHOLD ||
-    item.content.split("\n").length > 3;
+  const isSecret = item.content_type === "secret"
+  const isLong = item.content.length > LONG_CONTENT_THRESHOLD || item.content.split("\n").length > 3
 
   // Secrets re-mask themselves after a few seconds instead of staying
   // revealed indefinitely, so a card left open on screen doesn't leak a
   // password long after the user looked away.
   useEffect(() => {
-    if (!revealed) return;
-    const timer = setTimeout(() => setRevealed(false), SECRET_REVEAL_MS);
-    return () => clearTimeout(timer);
-  }, [revealed]);
+    if (!revealed) return
+    const timer = setTimeout(() => setRevealed(false), SECRET_REVEAL_MS)
+    return () => clearTimeout(timer)
+  }, [revealed])
 
   function handleCopy() {
-    onCopy(item.content);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1200);
+    onCopy(item.content)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 1200)
   }
 
   return (
@@ -85,9 +70,7 @@ export function ClipboardCard({
       data-selected={selected || undefined}
       className={cn(
         "group relative flex gap-3 rounded-lg border px-3 py-2.5 transition-colors cursor-default",
-        selected
-          ? "border-primary/40 bg-accent"
-          : "border-transparent hover:border-border hover:bg-accent/50"
+        selected ? "border-primary/40 bg-accent" : "border-transparent hover:border-border hover:bg-accent/50"
       )}
       onClick={() => onSelect?.(item.id)}
       onDoubleClick={handleCopy}
@@ -112,6 +95,13 @@ export function ClipboardCard({
           <span>{social?.label ?? meta.label}</span>
           <span className="text-border">·</span>
           <span>{item.char_count} chars</span>
+
+          {item.app_name && (
+            <>
+              <span className="text-border">·</span>
+              <span className="truncate">{item.app_name}</span>
+            </>
+          )}
         </div>
       </div>
 
@@ -124,17 +114,13 @@ export function ClipboardCard({
                 size="icon-sm"
                 className="shrink-0"
                 onClick={(e) => {
-                  e.stopPropagation();
-                  setRevealed((r) => !r);
+                  e.stopPropagation()
+                  setRevealed((r) => !r)
                 }}
               />
             }
           >
-            {revealed ? (
-              <EyeOff className="size-3.5" />
-            ) : (
-              <Eye className="size-3.5" />
-            )}
+            {revealed ? <EyeOff className="size-3.5" /> : <Eye className="size-3.5" />}
           </TooltipTrigger>
           <TooltipContent>{revealed ? "Hide" : "Reveal"}</TooltipContent>
         </Tooltip>
@@ -148,15 +134,7 @@ export function ClipboardCard({
       >
         {isLong && (
           <Tooltip>
-            <TooltipTrigger
-              render={
-                <Button
-                  variant="ghost"
-                  size="icon-sm"
-                  onClick={() => setDetailOpen(true)}
-                />
-              }
-            >
+            <TooltipTrigger render={<Button variant="ghost" size="icon-sm" onClick={() => setDetailOpen(true)} />}>
               <Eye className="size-3.5" />
             </TooltipTrigger>
             <TooltipContent>View full content</TooltipContent>
@@ -164,52 +142,21 @@ export function ClipboardCard({
         )}
 
         <Tooltip>
-          <TooltipTrigger
-            render={
-              <Button variant="ghost" size="icon-sm" onClick={handleCopy} />
-            }
-          >
-            {copied ? (
-              <Check className="size-3.5 text-primary" />
-            ) : (
-              <Copy className="size-3.5" />
-            )}
+          <TooltipTrigger render={<Button variant="ghost" size="icon-sm" onClick={handleCopy} />}>
+            {copied ? <Check className="size-3.5 text-primary" /> : <Copy className="size-3.5" />}
           </TooltipTrigger>
           <TooltipContent>Copy</TooltipContent>
         </Tooltip>
 
         <Tooltip>
-          <TooltipTrigger
-            render={
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                onClick={() => onToggleFavorite(item.id)}
-              />
-            }
-          >
-            <Star
-              className={cn(
-                "size-3.5",
-                item.is_favorite && "fill-amber-400 text-amber-400"
-              )}
-            />
+          <TooltipTrigger render={<Button variant="ghost" size="icon-sm" onClick={() => onToggleFavorite(item.id)} />}>
+            <Star className={cn("size-3.5", item.is_favorite && "fill-amber-400 text-amber-400")} />
           </TooltipTrigger>
-          <TooltipContent>
-            {item.is_favorite ? "Unfavorite" : "Favorite"}
-          </TooltipContent>
+          <TooltipContent>{item.is_favorite ? "Unfavorite" : "Favorite"}</TooltipContent>
         </Tooltip>
 
         <DropdownMenu>
-          <DropdownMenuTrigger
-            render={
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                aria-label="Add to collection"
-              />
-            }
-          >
+          <DropdownMenuTrigger render={<Button variant="ghost" size="icon-sm" aria-label="Add to collection" />}>
             <FolderPlus className="size-3.5" />
           </DropdownMenuTrigger>
           <DropdownMenuContent>
@@ -222,7 +169,7 @@ export function ClipboardCard({
                     onClick={() =>
                       addToCollection.mutate({
                         collectionId: c.id,
-                        itemId: item.id,
+                        itemId: item.id
                       })
                     }
                   >
@@ -237,15 +184,7 @@ export function ClipboardCard({
         </DropdownMenu>
 
         <Tooltip>
-          <TooltipTrigger
-            render={
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                onClick={() => onDelete(item.id)}
-              />
-            }
-          >
+          <TooltipTrigger render={<Button variant="ghost" size="icon-sm" onClick={() => onDelete(item.id)} />}>
             <Trash2 className="size-3.5 text-destructive" />
           </TooltipTrigger>
           <TooltipContent>Delete</TooltipContent>
@@ -261,5 +200,5 @@ export function ClipboardCard({
         onDelete={onDelete}
       />
     </div>
-  );
+  )
 }

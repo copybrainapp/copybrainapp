@@ -33,4 +33,5 @@ tauri-plugin-autostart = "2.5.1"
 tauri-plugin-single-instance = "2.4.3"
 tauri-plugin-os = "2.3.2"
 tauri-plugin-dialog = "2.7.1"
+active-win-pos-rs = "0.11"
 

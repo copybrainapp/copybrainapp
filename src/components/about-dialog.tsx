@@ -1,5 +1,7 @@
 import { getVersion } from "@tauri-apps/api/app";
+import { openUrl } from "@tauri-apps/plugin-opener";
 import { arch, platform } from "@tauri-apps/plugin-os";
+import { ShieldCheck } from "lucide-react";
 import { useEffect, useState } from "react";
 import {
   Dialog,
@@ -7,6 +9,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+
+const PRIVACY_URL =
+  "https://github.com/copybrainapp/copybrainapp/blob/main/PRIVACY.md";
 
 const PLATFORM_LABELS: Record<string, string> = {
   macos: "macOS",
@@ -72,6 +77,14 @@ export function AboutDialog({ open, onOpenChange }: AboutDialogProps) {
               {platformLabel} · {archLabel}
             </span>
           </div>
+          <button
+            type="button"
+            onClick={() => openUrl(PRIVACY_URL)}
+            className="mt-1 flex items-center gap-1 text-xs text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
+          >
+            <ShieldCheck className="size-3.5" />
+            Not a keylogger — open source &amp; privacy
+          </button>
         </div>
       </DialogContent>
     </Dialog>

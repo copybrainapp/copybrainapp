@@ -1,5 +1,6 @@
 use crate::content_type::detect_content_type;
 use crate::db::DbState;
+use active_win_pos_rs::get_active_window;
 use arboard::Clipboard;
 use chrono::Utc;
 use std::sync::{Arc, Mutex};
@@ -7,6 +8,21 @@ use std::thread;
 use std::time::Duration;
 use tauri::{AppHandle, Emitter, Manager};
 use uuid::Uuid;
+
+/// Best-effort: the app that owned the clipboard when the copy happened is
+/// almost always still frontmost by the time we notice the change (polling
+/// runs every 600ms), but a failure here should never stop the item itself
+/// from being captured.
+fn active_app_name() -> Option<String> {
+    get_active_window().ok().and_then(|w| {
+        let name = w.app_name.trim().to_string();
+        if name.is_empty() {
+            None
+        } else {
+            Some(name)
+        }
+    })
+}
 
 /// Holds the text this app just wrote to the system clipboard, so the
 /// watcher can skip re-capturing its own writes as new history entries.
@@ -49,14 +65,15 @@ pub fn spawn(app_handle: AppHandle, suppress: SuppressState) {
             let id = Uuid::new_v4().to_string();
             let created_at = Utc::now().timestamp_millis();
             let char_count = text.chars().count() as i64;
+            let app_name = active_app_name();
 
             let inserted = {
                 let state = app_handle.state::<DbState>();
                 let conn = state.0.lock().unwrap();
                 conn.execute(
                     "INSERT INTO clipboard_items (id, content, content_type, app_name, is_favorite, created_at, char_count)
-                     VALUES (?1, ?2, ?3, NULL, 0, ?4, ?5)",
-                    rusqlite::params![id, text, content_type, created_at, char_count],
+                     VALUES (?1, ?2, ?3, ?4, 0, ?5, ?6)",
+                    rusqlite::params![id, text, content_type, app_name, created_at, char_count],
                 )
                 .is_ok()
             };

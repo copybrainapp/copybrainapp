@@ -4,7 +4,7 @@
 
 CopyBrain is a modern clipboard timeline application for Windows, macOS, and Linux. Unlike typical clipboard managers that only keep the last few items, CopyBrain automatically archives your entire clipboard history into a searchable timeline — find anything you copied yesterday, last week, last month, or even years ago.
 
-CopyBrain is **open source** and MIT-licensed. Since it stores everything you've ever copied — including things like passwords or tokens that end up on your clipboard by accident — the source is public so anyone can audit exactly what it does with your data (spoiler: nothing leaves your machine) or build it themselves from source instead of trusting a downloaded binary.
+CopyBrain is **open source** and MIT-licensed. Since it stores everything you've ever copied — including things like passwords or tokens that end up on your clipboard by accident — the source is public so anyone can audit exactly what it does with your data (spoiler: nothing leaves your machine) or build it themselves from source instead of trusting a downloaded binary. It's not a keylogger — see [PRIVACY.md](./PRIVACY.md) for exactly what it does and doesn't do.
 
 ---
 
@@ -26,7 +26,8 @@ Prefer to build it yourself? See [Building production binaries / installers](#bu
 - Timeline view (grouped by day) with virtual scrolling
 - Instant search (full-text search via SQLite FTS5)
 - Favorites & Collections
-- Automatic content-type detection: Text, URL, Email, Phone, File Path
+- Automatic content-type detection: Text, URL, Email, Phone, File Path, Secret (masked by default), Social (per-platform icons), Code
+- Tracks which app each item was copied from
 - Tray icon + global shortcut (`Cmd/Ctrl+Shift+V`) to show/hide the window
 - Auto start on login (optional)
 - Single instance (no duplicate windows)
@@ -52,6 +53,7 @@ Prefer to build it yourself? See [Building production binaries / installers](#bu
 ### Backend (Rust, in `src-tauri/`)
 - **rusqlite** (`bundled` feature) — SQLite compiled directly into the binary, with **FTS5** built in for full-text search
 - **arboard** — reads/writes the system clipboard, polled from a background thread
+- **active-win-pos-rs** — identifies which app was frontmost when an item was copied
 - **tauri-plugin-global-shortcut** — global show/hide window shortcut
 - **tauri-plugin-autostart** — OS-level auto start
 - **tauri-plugin-single-instance** — prevents duplicate app instances
@@ -107,7 +109,10 @@ sudo apt install -y \
   file \
   libssl-dev \
   libxdo-dev \
-  libayatana-appindicator3-dev
+  libayatana-appindicator3-dev \
+  libxcb-ewmh-dev \
+  libxcb-randr0-dev \
+  libdbus-1-dev
 ```
 > Fedora/Arch use equivalent packages (`webkit2gtk4.1-devel`, etc). See the [official Tauri prerequisites docs](https://tauri.app/start/prerequisites/) for the full per-distro list.
 
@@ -260,6 +265,10 @@ Contributions are welcome — bug fixes, features, docs, or just filing an issue
 For larger changes (new features, architecture changes), open an issue first to discuss the approach before investing time in a PR.
 
 ---
+
+## Privacy & Security
+
+CopyBrain is not a keylogger and makes no network requests. See [PRIVACY.md](./PRIVACY.md) for the full breakdown of what it does and doesn't do with your data.
 
 ## License
 

@@ -102,6 +102,7 @@ export function ItemDetailDialog({
           <DialogDescription>
             {dateGroupLabel(item.created_at)} at {timeLabel(item.created_at)} ·{" "}
             {item.char_count.toLocaleString()} characters
+            {item.app_name && <> · from {item.app_name}</>}
           </DialogDescription>
         </DialogHeader>
 
