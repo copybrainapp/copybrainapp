@@ -1,4 +1,12 @@
-export type ContentType = "text" | "url" | "email" | "phone" | "file_path";
+export type ContentType =
+  | "text"
+  | "url"
+  | "email"
+  | "phone"
+  | "file_path"
+  | "secret"
+  | "social"
+  | "code";
 
 export interface ClipboardItem {
   id: string;

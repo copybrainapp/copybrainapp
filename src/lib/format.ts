@@ -11,3 +11,8 @@ export function dateGroupLabel(timestampMs: number): string {
 export function timeLabel(timestampMs: number): string {
   return format(new Date(timestampMs), "h:mm a");
 }
+
+/** Renders a fixed-width dot mask instead of the real length, so the mask itself doesn't leak how long the secret is. */
+export function maskSecret(): string {
+  return "•".repeat(28);
+}

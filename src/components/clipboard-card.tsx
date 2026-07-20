@@ -1,5 +1,13 @@
-import { Check, Copy, Eye, FolderPlus, Star, Trash2 } from "lucide-react";
-import { useState } from "react";
+import {
+  Check,
+  Copy,
+  Eye,
+  EyeOff,
+  FolderPlus,
+  Star,
+  Trash2,
+} from "lucide-react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -16,12 +24,14 @@ import {
 } from "@/components/ui/tooltip";
 import { ItemDetailDialog } from "@/components/item-detail-dialog";
 import { useAddToCollection, useCollections } from "@/hooks/use-clipboard-data";
-import { contentTypeMeta } from "@/lib/content-type-meta";
-import { timeLabel } from "@/lib/format";
+import { getContentTypeMeta } from "@/lib/content-type-meta";
+import { maskSecret, timeLabel } from "@/lib/format";
+import { detectSocialPlatform } from "@/lib/social-platform";
 import { cn } from "@/lib/utils";
 import type { ClipboardItem } from "@/types";
 
 const LONG_CONTENT_THRESHOLD = 180;
+const SECRET_REVEAL_MS = 8000;
 
 interface ClipboardCardProps {
   item: ClipboardItem;
@@ -42,14 +52,27 @@ export function ClipboardCard({
 }: ClipboardCardProps) {
   const [copied, setCopied] = useState(false);
   const [detailOpen, setDetailOpen] = useState(false);
-  const meta = contentTypeMeta[item.content_type];
-  const Icon = meta.icon;
+  const [revealed, setRevealed] = useState(false);
+  const meta = getContentTypeMeta(item.content_type);
+  const social =
+    item.content_type === "social" ? detectSocialPlatform(item.content) : null;
+  const Icon = social?.icon ?? meta.icon;
   const { data: collections } = useCollections();
   const addToCollection = useAddToCollection();
 
+  const isSecret = item.content_type === "secret";
   const isLong =
     item.content.length > LONG_CONTENT_THRESHOLD ||
     item.content.split("\n").length > 3;
+
+  // Secrets re-mask themselves after a few seconds instead of staying
+  // revealed indefinitely, so a card left open on screen doesn't leak a
+  // password long after the user looked away.
+  useEffect(() => {
+    if (!revealed) return;
+    const timer = setTimeout(() => setRevealed(false), SECRET_REVEAL_MS);
+    return () => clearTimeout(timer);
+  }, [revealed]);
 
   function handleCopy() {
     onCopy(item.content);
@@ -74,17 +97,48 @@ export function ClipboardCard({
       </div>
 
       <div className="min-w-0 flex-1">
-        <p className="line-clamp-3 whitespace-pre-wrap break-words text-[13px] leading-relaxed text-foreground">
-          {item.content}
+        <p
+          className={cn(
+            "line-clamp-3 whitespace-pre-wrap break-words text-[13px] leading-relaxed text-foreground",
+            isSecret && !revealed && "select-none tracking-widest",
+            item.content_type === "code" && "font-mono text-xs"
+          )}
+        >
+          {isSecret && !revealed ? maskSecret() : item.content}
         </p>
         <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
           <span>{timeLabel(item.created_at)}</span>
           <span className="text-border">·</span>
-          <span>{meta.label}</span>
+          <span>{social?.label ?? meta.label}</span>
           <span className="text-border">·</span>
           <span>{item.char_count} chars</span>
         </div>
       </div>
+
+      {isSecret && (
+        <Tooltip>
+          <TooltipTrigger
+            render={
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                className="shrink-0"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setRevealed((r) => !r);
+                }}
+              />
+            }
+          >
+            {revealed ? (
+              <EyeOff className="size-3.5" />
+            ) : (
+              <Eye className="size-3.5" />
+            )}
+          </TooltipTrigger>
+          <TooltipContent>{revealed ? "Hide" : "Reveal"}</TooltipContent>
+        </Tooltip>
+      )}
 
       <div
         className={cn(
