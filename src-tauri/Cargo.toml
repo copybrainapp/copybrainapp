@@ -1,6 +1,6 @@
 [package]
 name = "copybrain"
-version = "1.0.5"
+version = "1.1.0"
 description = "CopyBrain — your second brain for everything you copy. Archives your entire clipboard history into a searchable timeline."
 authors = ["zidniryi <zidnirydwan@gmail.com>"]
 edition = "2021"
