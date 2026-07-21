@@ -14,16 +14,16 @@ import { ItemDetailDialog } from "@/components/item-detail-dialog"
 import { useAddToCollection, useCollections } from "@/hooks/use-clipboard-data"
 import { getContentTypeMeta } from "@/lib/content-type-meta"
 import { maskSecret, timeLabel } from "@/lib/format"
+import { highlightMatches } from "@/lib/highlight"
 import { getQuickActions } from "@/lib/quick-actions"
 import { detectSocialPlatform } from "@/lib/social-platform"
 import { cn } from "@/lib/utils"
 import type { ClipboardItem } from "@/types"
 
-const LONG_CONTENT_THRESHOLD = 180
 const SECRET_REVEAL_MS = 8000
 
 interface ClipboardCardProps {
-  item: ClipboardItem
+  item: ClipboardItem & { content_indices?: number[]; app_name_indices?: number[] }
   selected?: boolean
   onCopy: (text: string) => void
   onToggleFavorite: (id: string) => void
@@ -49,7 +49,6 @@ export function ClipboardCard({
   const addToCollection = useAddToCollection()
 
   const isSecret = item.content_type === "secret"
-  const isLong = item.content.length > LONG_CONTENT_THRESHOLD || item.content.split("\n").length > 3
   const quickActions = getQuickActions(item, onCopy)
 
   // Secrets re-mask themselves after a few seconds instead of staying
@@ -89,7 +88,9 @@ export function ClipboardCard({
             item.content_type === "code" && "font-mono text-xs"
           )}
         >
-          {isSecret && !revealed ? maskSecret() : item.content}
+          {isSecret && !revealed
+            ? maskSecret()
+            : highlightMatches(item.content, item.content_indices)}
         </p>
         <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
           <span>{timeLabel(item.created_at)}</span>
@@ -101,7 +102,9 @@ export function ClipboardCard({
           {item.app_name && (
             <>
               <span className="text-border">·</span>
-              <span className="truncate">{item.app_name}</span>
+              <span className="truncate">
+                {highlightMatches(item.app_name, item.app_name_indices)}
+              </span>
             </>
           )}
         </div>
@@ -134,14 +137,12 @@ export function ClipboardCard({
           (item.is_favorite || selected) && "opacity-100"
         )}
       >
-        {isLong && (
-          <Tooltip>
-            <TooltipTrigger render={<Button variant="ghost" size="icon-sm" onClick={() => setDetailOpen(true)} />}>
-              <Eye className="size-3.5" />
-            </TooltipTrigger>
-            <TooltipContent>View full content</TooltipContent>
-          </Tooltip>
-        )}
+        <Tooltip>
+          <TooltipTrigger render={<Button variant="ghost" size="icon-sm" onClick={() => setDetailOpen(true)} />}>
+            <Eye className="size-3.5" />
+          </TooltipTrigger>
+          <TooltipContent>View full content</TooltipContent>
+        </Tooltip>
 
         <Tooltip>
           <TooltipTrigger render={<Button variant="ghost" size="icon-sm" onClick={handleCopy} />}>

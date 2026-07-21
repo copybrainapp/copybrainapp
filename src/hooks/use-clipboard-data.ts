@@ -1,6 +1,9 @@
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import * as api from "@/lib/tauri";
 import type { ViewFilter } from "@/store/ui-store";
+
+const SEARCH_DEBOUNCE_MS = 100;
 
 const PAGE_SIZE = 50;
 
@@ -31,10 +34,11 @@ export function useCollectionItems(collectionId: string | null) {
 }
 
 export function useSearch(query: string) {
+  const debouncedQuery = useDebouncedValue(query, SEARCH_DEBOUNCE_MS);
   return useQuery({
-    queryKey: ["search", query],
-    queryFn: () => api.searchItems(query),
-    enabled: query.trim().length > 0,
+    queryKey: ["search", debouncedQuery],
+    queryFn: () => api.fuzzySearchItems(debouncedQuery),
+    enabled: debouncedQuery.trim().length > 0,
   });
 }
 

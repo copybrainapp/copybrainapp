@@ -48,3 +48,9 @@ export interface MonitoringState {
   paused_indefinite: boolean;
   incognito_next: boolean;
 }
+
+export interface FuzzySearchResult extends ClipboardItem {
+  score: number;
+  content_indices: number[];
+  app_name_indices: number[];
+}

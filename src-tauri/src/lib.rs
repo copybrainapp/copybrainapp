@@ -2,6 +2,7 @@ mod clipboard_watcher;
 mod commands;
 mod content_type;
 mod db;
+mod fuzzy_search;
 mod models;
 mod monitoring;
 
@@ -425,6 +426,7 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             commands::get_timeline,
             commands::search_items,
+            commands::fuzzy_search_items,
             commands::toggle_favorite,
             commands::delete_item,
             commands::clear_history,

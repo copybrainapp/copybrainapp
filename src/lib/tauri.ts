@@ -4,6 +4,7 @@ import type {
   Collection,
   ContentType,
   DayCount,
+  FuzzySearchResult,
   MonitoringState,
   Stats,
 } from "@/types";
@@ -26,6 +27,10 @@ export function getTimeline(params: TimelineParams) {
 
 export function searchItems(query: string, limit = 100) {
   return invoke<ClipboardItem[]>("search_items", { query, limit });
+}
+
+export function fuzzySearchItems(query: string, limit = 100) {
+  return invoke<FuzzySearchResult[]>("fuzzy_search_items", { query, limit });
 }
 
 export function toggleFavorite(id: string) {

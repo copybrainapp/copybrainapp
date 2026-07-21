@@ -89,6 +89,66 @@ pub fn search_items(
 }
 
 #[tauri::command]
+pub fn fuzzy_search_items(
+    db: State<DbState>,
+    query: String,
+    limit: i64,
+) -> Result<Vec<crate::fuzzy_search::FuzzySearchResult>, String> {
+    let trimmed = query.trim();
+    if trimmed.is_empty() {
+        return Ok(vec![]);
+    }
+
+    let conn = db.0.lock().map_err(|e| e.to_string())?;
+
+    // Two candidate pools, deduped by id: FTS5's prefix match (cheap, catches
+    // exact/near-exact queries even deep in a huge history) plus the most
+    // recent items regardless of match (keeps typo tolerance working for the
+    // history someone actually searches day to day, since FTS5 alone isn't
+    // typo-tolerant).
+    let mut candidates: Vec<ClipboardItem> = Vec::new();
+    let mut seen_ids = std::collections::HashSet::new();
+
+    let fts_query = build_fts_query(trimmed);
+    let fts_sql = format!(
+        "SELECT {ITEM_COLUMNS} FROM clipboard_items
+         WHERE rowid IN (SELECT rowid FROM clipboard_items_fts WHERE clipboard_items_fts MATCH ?1)
+         ORDER BY created_at DESC LIMIT 500"
+    );
+    if let Ok(mut stmt) = conn.prepare(&fts_sql) {
+        if let Ok(rows) = stmt.query_map(params![fts_query], row_to_item) {
+            for row in rows.filter_map(|r| r.ok()) {
+                if seen_ids.insert(row.id.clone()) {
+                    candidates.push(row);
+                }
+            }
+        }
+    }
+
+    let recent_sql = format!(
+        "SELECT {ITEM_COLUMNS} FROM clipboard_items ORDER BY created_at DESC LIMIT ?1"
+    );
+    let mut stmt = conn.prepare(&recent_sql).map_err(|e| e.to_string())?;
+    let rows = stmt
+        .query_map(
+            params![crate::fuzzy_search::RECENT_CANDIDATE_LIMIT],
+            row_to_item,
+        )
+        .map_err(|e| e.to_string())?;
+    for row in rows.filter_map(|r| r.ok()) {
+        if seen_ids.insert(row.id.clone()) {
+            candidates.push(row);
+        }
+    }
+
+    Ok(crate::fuzzy_search::search(
+        trimmed,
+        candidates,
+        limit as usize,
+    ))
+}
+
+#[tauri::command]
 pub fn toggle_favorite(db: State<DbState>, id: String) -> Result<bool, String> {
     let conn = db.0.lock().map_err(|e| e.to_string())?;
     conn.execute(
