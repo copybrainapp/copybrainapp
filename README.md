@@ -1,5 +1,8 @@
 # CopyBrain
 
+[![Latest release](https://img.shields.io/github/v/release/copybrainapp/copybrainapp?label=latest)](https://github.com/copybrainapp/copybrainapp/releases/latest)
+[![Total downloads](https://img.shields.io/github/downloads/copybrainapp/copybrainapp/total)](https://github.com/copybrainapp/copybrainapp/releases)
+
 > Never lose a copied text again.
 
 CopyBrain is a modern clipboard timeline application for Windows, macOS, and Linux. Unlike typical clipboard managers that only keep the last few items, CopyBrain automatically archives your entire clipboard history into a searchable timeline — find anything you copied yesterday, last week, last month, or even years ago.
@@ -10,7 +13,7 @@ CopyBrain is **open source** and MIT-licensed. Since it stores everything you've
 
 ## Download
 
-Grab the latest installer for your platform from the [Releases page](https://github.com/copybrainapp/copybrainapp-releases/releases/latest):
+Grab the latest installer for your platform from the [Releases page](https://github.com/copybrainapp/copybrainapp/releases/latest):
 
 - **macOS**: `CopyBrain_<version>_universal.dmg`
 - **Windows**: `CopyBrain_<version>_x64-setup.exe` (installer), `CopyBrain_<version>_x64_en-US.msi` (installer), or `CopyBrain_<version>_x64_portable.zip` (no install required)
