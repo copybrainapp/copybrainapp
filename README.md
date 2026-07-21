@@ -11,6 +11,12 @@ CopyBrain is **open source** and MIT-licensed. Since it stores everything you've
 
 ---
 
+## Showcase
+
+![CopyBrain showcase](./.github/assets/showcase.webp)
+
+---
+
 ## Download
 
 Grab the latest installer for your platform from the [Releases page](https://github.com/copybrainapp/copybrainapp/releases/latest):
