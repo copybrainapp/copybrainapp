@@ -6,6 +6,9 @@ on:
       - "v*"
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build:
     strategy:
@@ -67,10 +70,10 @@ jobs:
       - name: Build Tauri app
         uses: tauri-apps/tauri-action@v0
         env:
-          GITHUB_TOKEN: ${{ secrets.RELEASE_REPO_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           owner: copybrainapp
-          repo: copybrainapp-releases
+          repo: copybrainapp
           tagName: ${{ github.ref_name }}
           releaseName: "CopyBrain ${{ github.ref_name }}"
           releaseCommitish: main
@@ -91,5 +94,5 @@ jobs:
       - name: Upload portable build to release
         if: matrix.platform == 'windows-latest'
         env:
-          GH_TOKEN: ${{ secrets.RELEASE_REPO_TOKEN }}
-        run: gh release upload "${{ github.ref_name }}" CopyBrain_*_x64_portable.zip --repo copybrainapp/copybrainapp-releases --clobber
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release upload "${{ github.ref_name }}" CopyBrain_*_x64_portable.zip --repo copybrainapp/copybrainapp --clobber

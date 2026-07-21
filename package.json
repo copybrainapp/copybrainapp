@@ -1,7 +1,29 @@
 {
   "name": "copybrain",
   "private": true,
-  "version": "1.1.0",
+  "version": "1.1.1",
+  "description": "CopyBrain — your second brain for everything you copy. Archives your entire clipboard history into a searchable timeline.",
+  "author": "zidniryi <zidnirydwan@gmail.com>",
+  "license": "MIT",
+  "homepage": "https://github.com/copybrainapp/copybrainapp",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/copybrainapp/copybrainapp.git"
+  },
+  "bugs": {
+    "url": "https://github.com/copybrainapp/copybrainapp/issues"
+  },
+  "keywords": [
+    "clipboard",
+    "clipboard-manager",
+    "clipboard-history",
+    "productivity",
+    "tauri",
+    "desktop-app",
+    "macos",
+    "windows",
+    "linux"
+  ],
   "type": "module",
   "packageManager": "pnpm@10.16.1",
   "scripts": {

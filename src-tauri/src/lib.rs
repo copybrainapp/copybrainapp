@@ -12,7 +12,7 @@ use std::sync::{Arc, Mutex};
 use tauri::menu::{CheckMenuItem, IsMenuItem, Menu, MenuItem, PredefinedMenuItem, Submenu};
 use tauri::tray::{TrayIcon, TrayIconBuilder};
 use tauri::{Emitter, Manager, WindowEvent, Wry};
-use tauri_plugin_autostart::MacosLauncher;
+use tauri_plugin_autostart::{MacosLauncher, ManagerExt};
 use tauri_plugin_global_shortcut::{GlobalShortcutExt, ShortcutState};
 
 const TRAY_RECENT_LIMIT: i64 = 8;
@@ -288,8 +288,21 @@ pub fn run() {
         .setup(|app| {
             let handle = app.handle().clone();
 
+            // Detect first run (before the db file gets created below) so we can
+            // default autostart to on for new installs without overriding a
+            // choice an existing user already made.
+            let is_first_run = handle
+                .path()
+                .app_data_dir()
+                .map(|dir| !dir.join("copybrain.db").exists())
+                .unwrap_or(false);
+
             let conn = db::init(&handle);
             app.manage(DbState(Mutex::new(conn)));
+
+            if is_first_run {
+                let _ = app.autolaunch().enable();
+            }
 
             let suppress: clipboard_watcher::SuppressState = Arc::new(Mutex::new(None));
             app.manage(suppress.clone());
